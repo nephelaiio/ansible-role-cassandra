@@ -1,0 +1,6 @@
+---
+- name: restart cassandra
+  become: yes
+  service:
+    name: "{{ cassandra_service_name }}"
+    state: restarted

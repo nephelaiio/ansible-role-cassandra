@@ -1,0 +1,127 @@
+---
+- name: include variable overrides
+  include_vars: "{{ item }}"
+  vars:
+    params:
+      - "vars/{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml"
+      - "vars/{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
+      - "vars/{{ ansible_distribution | lower }}.yml"
+      - "vars/{{ ansible_os_family | lower }}.yml"
+      - "vars/default.yml"
+  loop: "{{ q('first_found', params, skip=True) }}"
+  tags:
+    - always
+
+- include_tasks: "./{{ ansible_os_family | lower }}.yml"
+
+- name: manage cassandra data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ cassandra_service_user }}"
+    group: "{{ cassandra_service_group }}"
+  loop:
+    - "{{ ([cassandra_home] + cassandra_dirs) | unique }}"
+
+- name: configure cassandra
+  template:
+    src: cassandra.yml.j2
+    dest: "{{ cassandra_conf_file }}"
+    backup: yes
+  vars:
+    _cassandra_conf: "{{ cassandra_conf }}"
+  notify: restart cassandra
+
+- name: manage cassandra service
+  service:
+    name: "{{ cassandra_service_name }}"
+    state: "{{ cassandra_service_status }}"
+    enabled: "{{ cassandra_service_enabled }}"
+
+- name: flush handlers
+  meta: flush_handlers
+
+- name: wait for cassandra startup
+  wait_for:
+    host: "{{ cassandra_conf.listen_address }}"
+    port: "{{ cassandra_conf.native_transport_port }}"
+
+- name: install cassandra pip
+  pip:
+    name: "{{ cassandra_driver_pip }}"
+  changed_when: false
+
+- block:
+
+    - name: authenticate against cassandra engine
+      command: >
+        cqlsh {{ cassandra_conf.listen_address }} {{ cassandra_conf.native_transport_port }}
+        -u cassandra -p {{ cassandra_role_pass }}
+        -e 'list roles;'
+      register: cqlsh_auth
+      failed_when: false
+      changed_when: false
+
+    - block:
+
+        - name: reconfigure cassandra auth
+          template:
+            src: cassandra.yml.j2
+            dest: "{{ cassandra_conf_file }}"
+            backup: yes
+          vars:
+            cassandra_conf_override:
+              authenticator: AllowAllAuthenticator
+              authorizer: AllowAllAuthorizer
+            _cassandra_conf: "{{ cassandra_conf | combine(cassandra_conf_override) }}"
+
+        - name: restart cassandra
+          become: yes
+          service:
+            name: "{{ cassandra_service_name }}"
+            state: restarted
+
+        - name: wait for cassandra startup
+          wait_for:
+            host: "{{ cassandra_conf.listen_address }}"
+            port: "{{ cassandra_conf.native_transport_port }}"
+
+        - name: reset admin password
+          command: >
+            cqlsh {{ cassandra_conf.listen_address }} {{ cassandra_conf.native_transport_port }}
+            -e "update system_auth.roles
+            set salted_hash='$2a$10$vbfmLdkQdUz3Rmw.fF7Ygu6GuphqHndpJKTvElqAciUJ4SZ3pwquu'
+            where role='cassandra';"
+
+        - name: restore cassandra configuration
+          template:
+            src: cassandra.yml.j2
+            dest: "{{ cassandra_conf_file }}"
+            backup: yes
+          vars:
+            _cassandra_conf: "{{ cassandra_conf }}"
+
+        - name: restart cassandra
+          become: yes
+          service:
+            name: "{{ cassandra_service_name }}"
+            state: restarted
+
+        - name: wait for cassandra startup
+          wait_for:
+            host: "{{ cassandra_conf.listen_address }}"
+            port: "{{ cassandra_conf.native_transport_port }}"
+
+        - name: set admin password
+          command: >
+            cqlsh {{ cassandra_conf.listen_address }} {{ cassandra_conf.native_transport_port }}
+            -u cassandra -p cassandra
+            -e "alter user cassandra with password '{{ cassandra_role_pass }}'"
+          register: cqlsh_admin
+          until: cqlsh_admin.rc == 0
+          retries: 3
+          delay: 60
+
+      when: cqlsh_auth.rc != 0
+
+  run_once: yes

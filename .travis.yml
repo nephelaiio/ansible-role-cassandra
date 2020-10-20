@@ -1,0 +1,24 @@
+# vim: ts=2 sw=2 et :
+---
+language: python
+
+jobs:
+  include:
+    - script: molecule test -s default
+      MOLECULE_DISTRO: centos7
+      MOLECULE_DOCKER_COMMAND: /usr/lib/systemd/systemd
+    - script: molecule test -s cluster
+      MOLECULE_DISTRO: centos7
+      MOLECULE_DOCKER_COMMAND: /usr/lib/systemd/systemd
+
+sudo: required
+
+services:
+  - docker
+
+install:
+  - pip install -r https://raw.githubusercontent.com/nephelaiio/ansible-role-requirements/master/requirements.txt
+  - pip install -r ./requirements.txt
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/

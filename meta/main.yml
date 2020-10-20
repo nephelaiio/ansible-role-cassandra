@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: cassandra
+  author: Ted Cook
+  description: An Ansible role to install and configure cassandra
+  license: MIT
+  min_ansible_version: 2.2
+  platforms:
+    - name: EL
+      versions:
+        - 7
+  galaxy_tags: ['cassandra']
+
+dependencies:
+  - role: geerlingguy.repo-epel
+    when: (ansible_os_family | lower) == 'redhat'
