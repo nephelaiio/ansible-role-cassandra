@@ -15,21 +15,19 @@ By default this role does not depend on any external roles. If any such dependen
 
 ## Example Playbook
 
+```
 - hosts: servers
   roles:
      - role: nephelaiio.cassandra
        cassandra_package_state: latest
-
+```
 
 ## Testing
 
 Please make sure your environment has [docker](https://www.docker.com) installed in order to run role validation tests. Additional python dependencies are listed in the [requirements file](https://github.com/nephelaiio/ansible-role-requirements/blob/master/requirements.txt)
 
 Role is tested against the following distributions (docker images):
-  * Ubuntu Xenial
   * CentOS 7
-  * Debian Stretch
-  * Arch Linux
 
 You can test the role directly from sources using command ` molecule test `
 
