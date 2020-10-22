@@ -19,7 +19,6 @@ cassandra_service_group: cassandra
 cassandra_service_name: cassandra
 cassandra_service_status: started
 cassandra_service_enabled: yes
-cassandra_driver_pip: cassandra-driver
 cassandra_dirs: []
 cassandra_defaults_file: /etc/default/cassandra
 cassandra_conf_file: /etc/cassandra/conf/cassandra.yaml

@@ -46,11 +46,6 @@
     host: "{{ cassandra_conf.listen_address }}"
     port: "{{ cassandra_conf.native_transport_port }}"
 
-- name: install cassandra pip
-  pip:
-    name: "{{ cassandra_driver_pip }}"
-  changed_when: false
-
 - block:
 
     - name: authenticate against cassandra engine
