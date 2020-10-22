@@ -17,5 +17,34 @@ platforms:
     pre_build_image: true
 provisioner:
   name: ansible
+  inventory:
+    group_vars:
+      all:
+        cassandra_nolog: no
+        cassandra_role_pass: cassandra
+        cassandra_roles:
+          - name: topsecret
+            password: topsecret
+            superuser: true
+          - name: nosecret
+            password: nosecret
+            superuser: false
+scenario:
+  test_sequence:
+    - dependency
+    - lint
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - side_effect
+    - converge
+    - verify
+    - cleanup
+    - destroy
 verifier:
   name: testinfra

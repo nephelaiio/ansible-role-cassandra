@@ -1,0 +1,34 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: change existing cassandra roles
+      command: >
+        cqlsh localhost
+        -u cassandra -p {{ cassandra_role_pass }}
+        -e "
+          ALTER ROLE {{ item.name }}
+          WITH SUPERUSER = false
+          AND LOGIN = false
+          AND PASSWORD = 'test'"
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ cassandra_roles }}"
+
+    - name: delete sample cassandra role
+      command: >
+        cqlsh localhost
+        -u cassandra -p {{ cassandra_role_pass }}
+        -e "DROP ROLE 'nosecret';"
+
+    - name: change existing cassandra role password
+      command: >
+        cqlsh localhost
+        -u cassandra -p {{ cassandra_role_pass }}
+        -e "ALTER ROLE cassandra WITH PASSWORD = 'test'"
+
+  roles:
+    - role: cassandra

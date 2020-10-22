@@ -52,7 +52,7 @@
       command: >
         cqlsh {{ cassandra_conf.listen_address }} {{ cassandra_conf.native_transport_port }}
         -u cassandra -p {{ cassandra_role_pass }}
-        -e 'list roles;'
+        -e 'quit;'
       register: cqlsh_auth
       failed_when: false
       changed_when: false
@@ -118,5 +118,35 @@
           delay: 60
 
       when: cqlsh_auth.rc != 0
+
+    - name: create missing cassandra roles
+      command: >
+        cqlsh {{ cassandra_conf.listen_address }} {{ cassandra_conf.native_transport_port }}
+        -u cassandra -p {{ cassandra_role_pass }}
+        -e "
+          CREATE ROLE IF NOT EXISTS {{ item.name }}
+          WITH SUPERUSER = {{ (item.superuser | default('no')) | ternary('true', 'false') }}
+          AND LOGIN = {{ (item.login | default('no')) | ternary('true', 'false') }}
+          AND PASSWORD = '{{ item.password }}';"
+      no_log: '{{ cassandra_nolog }}'
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ cassandra_roles }}"
+      changed_when: false
+
+    - name: manage existing cassandra role passwords
+      command: >
+        cqlsh {{ cassandra_conf.listen_address }} {{ cassandra_conf.native_transport_port }}
+        -u cassandra -p {{ cassandra_role_pass }}
+        -e "
+          ALTER ROLE {{ item.name }}
+          WITH SUPERUSER = {{ (item.superuser | default('no')) | ternary('true', 'false') }}
+          AND LOGIN = {{ (item.login | default('no')) | ternary('true', 'false') }}
+          AND PASSWORD = '{{ item.password }}';"
+      no_log: "{{ cassandra_nolog }}"
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ cassandra_roles }}"
+      changed_when: false
 
   run_once: yes

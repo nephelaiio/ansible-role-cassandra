@@ -34,6 +34,7 @@ provisioner:
   inventory:
     group_vars:
       all:
+        cassandra_nolog: no
         cassandra_role_pass: topsecret
         cassandra_hosts: "{{ groups['all'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
 verifier:

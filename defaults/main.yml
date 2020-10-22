@@ -19,6 +19,7 @@ cassandra_service_group: cassandra
 cassandra_service_name: cassandra
 cassandra_service_status: started
 cassandra_service_enabled: yes
+cassandra_roles: []
 cassandra_dirs: []
 cassandra_defaults_file: /etc/default/cassandra
 cassandra_conf_file: /etc/cassandra/conf/cassandra.yaml
@@ -152,3 +153,4 @@ cassandra_conf:
         - high_ratio: 0.90
           factor: 5
           flow: FAST
+cassandra_nolog: yes
