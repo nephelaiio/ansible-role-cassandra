@@ -13,14 +13,18 @@
     name: "{{ cassandra_package_names }}"
     state: "{{ cassandra_package_state }}"
 
-- name: install jolokia jar
-  get_url:
-    url: "{{ cassandra_jolokia_agent_url }}"
-    dest: "{{ cassandra_jolokia_agent_path }}"
+- block:
 
-- name: configure jolokia agent
-  lineinfile:
-    path: "{{ cassandra_defaults_file }}"
-    regexp: "^JVM_OPTS="
-    line: "JVM_OPTS=\"$JVM_OPTS -javaagent:{{ cassandra_jolokia_agent_path }},port={{ cassandra_jolokia_port }},host={{ cassandra_jolokia_host }}\""
-  notify: restart cassandra
+    - name: install jolokia jar
+      get_url:
+        url: "{{ cassandra_jolokia_agent_url }}"
+        dest: "{{ cassandra_jolokia_agent_path }}"
+
+    - name: configure jolokia agent
+      lineinfile:
+        path: "{{ cassandra_defaults_file }}"
+        regexp: "^JVM_OPTS="
+        line: "JVM_OPTS=\"$JVM_OPTS -javaagent:{{ cassandra_jolokia_agent_path }},port={{ cassandra_jolokia_port }},host={{ cassandra_jolokia_host }}\""
+      notify: restart cassandra
+
+  when: cassandra_jolokia_manage | bool
