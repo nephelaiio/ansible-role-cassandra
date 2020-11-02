@@ -23,15 +23,15 @@
   loop:
     - "{{ ([cassandra_home] + cassandra_dirs) | unique }}"
 
-    - name: configure cassandra
-      template:
-        src: cassandra.yml.j2
-        dest: "{{ cassandra_conf_file }}"
-        backup: yes
-      vars:
-        _cassandra_conf: "{{ cassandra_conf }}"
-      notify: restart cassandra
-      when: cassandra_conf_manage | bool
+- name: configure cassandra
+  template:
+    src: cassandra.yml.j2
+    dest: "{{ cassandra_conf_file }}"
+    backup: yes
+  vars:
+    _cassandra_conf: "{{ cassandra_conf }}"
+  notify: restart cassandra
+  when: cassandra_conf_manage | bool
 
 - block:
 
