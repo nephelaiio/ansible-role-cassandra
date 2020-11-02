@@ -31,12 +31,14 @@
   vars:
     _cassandra_conf: "{{ cassandra_conf }}"
   notify: restart cassandra
+  when: cassandra_conf_manage | bool
 
 - name: manage cassandra service
   service:
     name: "{{ cassandra_service_name }}"
     state: "{{ cassandra_service_status }}"
     enabled: "{{ cassandra_service_enabled }}"
+  when: cassandra_service_manage | bool
 
 - name: flush handlers
   meta: flush_handlers
@@ -150,3 +152,4 @@
       changed_when: false
 
   run_once: yes
+  when: cassandra_role_manage | bool

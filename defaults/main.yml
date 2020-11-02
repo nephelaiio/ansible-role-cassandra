@@ -19,6 +19,7 @@ cassandra_service_group: cassandra
 cassandra_service_name: cassandra
 cassandra_service_status: started
 cassandra_service_enabled: yes
+cassandra_service_manage: yes
 cassandra_roles: []
 cassandra_dirs: []
 cassandra_defaults_file: /etc/default/cassandra
@@ -27,7 +28,9 @@ cassandra_native_port: 9042
 cassandra_native_address: "{{ ansible_default_ipv4.address }}"
 cassandra_rpc_broadcast: "{{ ansible_default_ipv4.address }}"
 cassandra_rpc_port: 9160
+cassandra_role_manage: yes
 cassandra_role_pass: cassandra
+cassandra_conf_manage: yes
 cassandra_conf:
   cluster_name: "{{ cassandra_cluster_name | default('default') }}"
   num_tokens: 256
