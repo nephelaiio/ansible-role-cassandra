@@ -2,6 +2,7 @@
 cassandra_package_names: cassandra
 cassandra_package_state: present
 cassandra_home: /var/lib/cassandra
+cassandra_jolokia_manage: true
 cassandra_jolokia_agent_release: 1.6.2
 cassandra_jolokia_agent_url: "https://search.maven.org/remotecontent?filepath=org/jolokia/jolokia-jvm/{{ cassandra_jolokia_agent_release }}/jolokia-jvm-{{ cassandra_jolokia_agent_release }}-agent.jar"
 cassandra_jolokia_agent_path: "/usr/share/cassandra/lib/jolokia.jar"
