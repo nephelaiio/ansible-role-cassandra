@@ -23,30 +23,33 @@
   loop:
     - "{{ ([cassandra_home] + cassandra_dirs) | unique }}"
 
-- name: configure cassandra
-  template:
-    src: cassandra.yml.j2
-    dest: "{{ cassandra_conf_file }}"
-    backup: yes
-  vars:
-    _cassandra_conf: "{{ cassandra_conf }}"
-  notify: restart cassandra
-  when: cassandra_conf_manage | bool
+    - name: configure cassandra
+      template:
+        src: cassandra.yml.j2
+        dest: "{{ cassandra_conf_file }}"
+        backup: yes
+      vars:
+        _cassandra_conf: "{{ cassandra_conf }}"
+      notify: restart cassandra
+      when: cassandra_conf_manage | bool
 
-- name: manage cassandra service
-  service:
-    name: "{{ cassandra_service_name }}"
-    state: "{{ cassandra_service_status }}"
-    enabled: "{{ cassandra_service_enabled }}"
+- block:
+
+    - name: manage cassandra service
+      service:
+        name: "{{ cassandra_service_name }}"
+        state: "{{ cassandra_service_status }}"
+        enabled: "{{ cassandra_service_enabled }}"
+
+    - name: flush handlers
+      meta: flush_handlers
+
+    - name: wait for cassandra startup
+      wait_for:
+        host: "{{ cassandra_conf.listen_address }}"
+        port: "{{ cassandra_conf.native_transport_port }}"
+
   when: cassandra_service_manage | bool
-
-- name: flush handlers
-  meta: flush_handlers
-
-- name: wait for cassandra startup
-  wait_for:
-    host: "{{ cassandra_conf.listen_address }}"
-    port: "{{ cassandra_conf.native_transport_port }}"
 
 - block:
 
