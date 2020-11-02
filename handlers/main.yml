@@ -4,3 +4,4 @@
   service:
     name: "{{ cassandra_service_name }}"
     state: restarted
+  when: cassandra_service_manage | bool
